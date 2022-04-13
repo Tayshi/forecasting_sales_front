@@ -62,23 +62,23 @@ def inventory_unit(sb_month_unit, sb_year_unit):
     else:
         df_past = df.loc[(df['date'].dt.year == sb_year_unit) &
                         (df['date'].dt.month == sb_month_unit - 1)]
-    result_past = result_actual - df_past['family_sales'].sum()
+    # result_past = result_actual - df_past['family_sales'].sum()
+    result_past = df_past['family_sales'].sum()
 
 
     return result_actual, result_past
 
 
-# Inventory Units (With + or -) %
-# Sales Units (With + or -) %
 col1, col2 = st.columns(2)
 su_actual_month, su_past_month = inventory_unit(sb_month_unit, sb_year_unit)
+su_past_month = -(100 - (su_actual_month * 100 / su_past_month))
 
-su_past_month = su_actual_month * 100 / su_past_month
 
-col1.metric("Sales Units", f"{su_actual_month}", f"{su_past_month * 100}%")
+# Sales Units (With + or -) %
+col1.metric("Sales Units", f"{su_actual_month}", f"{int(su_past_month)}%")
 
-# In Progress
-# Need stock
+# In Progress - need stock
+# Inventory Units (With + or -) %
 col2.metric("Inventory Units", "121.10", "0.46%")
 
 
