@@ -1,5 +1,4 @@
 # Import
-# from matplotlib.font_manager import get_fontconfig_fonts
 import streamlit as st
 import numpy as np
 import pandas as pd
@@ -7,11 +6,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.express as px
-
-
-# Later pip install
-# - geopy
-# - Nominatim
 
 
 # Initial state of website
@@ -30,11 +24,17 @@ h1 {
 """
 st.write(f'<style>{CSS}</style>', unsafe_allow_html=True)
 
+'''
+# Forecast for sales
+
+## Management inventory
+---
+'''
 
 expander_df = st.expander(label='DataFrame')
 
 with expander_df:
-    @st.cache
+    @st.cache(suppress_st_warning=True, allow_output_mutation=True)
     def get_cached_data():
         # return pd.read_csv('raw_data/train_all_table.csv', nrows=10000).drop(columns='Unnamed: 0')
         # work with 1 store
@@ -51,11 +51,9 @@ with expander_df:
 st.write('Min date: ', min(df['date']))
 st.write('Max date: ', max(df['date']))
 
-
 # check actual month (vs previous month)
 # compare sum 2 family_sales
 # show with deficit or benefit
-
 sb_month_unit = st.selectbox('Month Unit', range(min(df['date'].dt.month),
                                                 max(df['date'].dt.month)))
 
@@ -81,107 +79,26 @@ def inventory_unit(sb_month_unit, sb_year_unit):
 # Inventory Units (With + or -) %
 # Sales Units (With + or -) %
 col1, col2 = st.columns(2)
-ui_actual_month, iu_past_month = inventory_unit(sb_month_unit, sb_year_unit)
-col1.metric("Sales Units", f"{ui_actual_month}", f"{iu_past_month}")
+su_actual_month, su_past_month = inventory_unit(sb_month_unit, sb_year_unit)
+
+su_past_month = su_actual_month * 100 / su_past_month
+
+col1.metric("Sales Units", f"{su_actual_month}", f"{su_past_month * 100}%")
 
 # In Progress
 # Need stock
 col2.metric("Inventory Units", "121.10", "0.46%")
 
-with st.sidebar:
-    '''
-    # Forecast for sales
+expander_need_stock = st.expander(label='Produits nécessaires à restock')
+expander_top_ten = st.expander(label='Top 10 des ventes (Sur 1 famille)')
+expander_avail_stock = st.expander(label='Stocks disponibles (Sur 1 famille)')
+expander_predict_sales = st.expander(label='Prévisions des ventes')
 
-    ## Management inventory
-    ---
-    '''
-
-
-    show_1 = st.checkbox('Show 1')
-    '''
-    - Needed product (Prod, Alert, Nb)
-    ---
-    '''
-
-    show_2 = st.checkbox('Show 2')
-    '''
-    - Top 10 of sales, inventories
-    ---
-    '''
-
-    # show_3 = st.checkbox('Show 3')
-    # '''
-    # - Inventory Trend
-    # ---
-    # '''
-
-    show_4 = st.checkbox('Show 4')
-    '''
-    - Available stock by Family
-    - Forecast Sales
-    ---
-    '''
-
-    show_inv_eff = st.checkbox('Inv. efficient')
-    '''
-    - Inventory Efficient (Lines predict/Real)
-    '''
-
-    # '''
-    # Mapping
-    # '''
-    # mapping = st.checkbox('Show Map')
-
-
-if show_inv_eff: # InvEff (Pred, Real)
-    '### Screen down : Inventory Efficient (Lines predict, Lines real)'
-
-    # def display_time_series_2():
-    #     # dataframe predicted
-    #     fig = px.line(df, x='date', y='family_sales', markers=True)
-    #     # dataframe real
-    #     fig = px.line(df, x='date', y='family_sales', markers=True)
-    #     return fig
-
-    # Just remove after
-    st.write(df.groupby(by='family').sum().sort_values('family_sales', ascending=False))
-
-
-    # df.loc[df['family'] == 'GROCERY I'].loc[df['date'].dt.year == 2015]
-    @st.cache(suppress_st_warning=True, allow_output_mutation=True)
-    def inv_efficient_plotly(df):
-        # see after to compare predict/real
-        # fig = px.line(df, x="date", y="family_sales", color='predict')
-        # GROCERY I
-
-        # test between 2 family
-        df['date'] = pd.to_datetime(df['date'])
-        # df predict (diff with columns predict: True ?)
-        df_one_family = df.loc[df['family'] == 'GROCERY I']\
-                            .loc[df['date'].dt.year == 2015]
-        # df real
-        df_second_family = df.loc[df['family'] == 'BEVERAGES']\
-                                .loc[df['date'].dt.year == 2015]
-        df_compare = pd.concat([df_one_family, df_second_family])
-
-        # later, color= to diff predict with real
-        fig_one = px.line(df_compare, x='date', y='family_sales', markers=True,
-                          title='Inventory Efficient of application', color='family')
-
-        fig_one.update_layout(paper_bgcolor='#B2B1B9')
-        # fig_two = px.line(df_second_family, x='date', y='family_sales', markers=True)
-
-        return fig_one
-    fig_one = inv_efficient_plotly(df)
-
-    st.plotly_chart(fig_one)
 
 col_left, col_right = st.columns(2)
 with col_left: # Columns left
-    if show_1: #  Needed product
-
-
-        '### Screen 1 left : Needed product (Prod, Alert, Nb)'
+    with expander_need_stock: #  Needed product
+        '### Produits nécessaires à restock (Sur 1 boutique)'
 
         # color not functionnal
         # def _color_red_or_green(val):
@@ -205,36 +122,12 @@ with col_left: # Columns left
         st.dataframe(df_store[['alert', 'family_sales']])
 
 
-    # if show_3: # InvTrend
-    #     '### Screen 3 left : Inventory Trend'
-    #     # Selectbox for year and family
-    #     sb_year_inv = st.selectbox('Year inv',
-    #                     range(min(df['date'].dt.year),
-    #                         max(df['date'].dt.year)))
-    #     sb_family_inv = st.selectbox('Family inv', df['family'].unique())
-
-    #     @st.cache(suppress_st_warning=True, allow_output_mutation=True)
-    #     def display_time_series(df, sb_family_inv, year):
-    #         # df = px.data.stocks() # replace with your own data source
-
-    #         # x=date y=family_sales by year by family
-    #         df_family = df.loc[df['family'] == sb_family_inv]\
-    #                         .loc[df['date'].dt.year == year]
-    #         # Lines plots
-    #         fig = px.line(df_family, x='date', y='family_sales', markers=True)
-    #         fig.update_layout(paper_bgcolor='#B2B1B9')
-    #         return fig
-
-
-    #     st.plotly_chart(display_time_series(df, sb_family_inv, sb_year_inv))
 
 
 
 with col_right: # Column right
-    if show_2: # top10, AvailableStock, Forecast Sales
-        '''
-        ### Screen 2 right : Top 10 of sales, inventories
-        '''
+    with expander_top_ten: # top10
+        '### Top 10 des ventes (Sur 1 famille)'
         # add date to choose
         sb_year_top_10 = st.selectbox('Year',
                                 range(min(df['date'].dt.year),
@@ -254,12 +147,13 @@ with col_right: # Column right
         st.dataframe(show_top_10(df, sb_year_top_10))
 
 
-
-
-    if show_4: # AvailableStock, Forecast Sales
-        '### Screen right : Available stock by family'
+    with expander_avail_stock: # AvailableStock
+        '### Stocks disponibles (Sur 1 famille)'
 
         '''
+
+        'Here, a selecbox of family'
+
         Add someting here
         Need item_nbr if check 1 family...
         '''
@@ -269,9 +163,8 @@ with col_right: # Column right
         # df_family = df[df['family'] == sb_family_stock]
         # st.plotly_chart(px.bar(df_family,x='unit_sales' y='item_nbr'))
 
-
-
-        '### Screen 4 right :  Forecast Sales'
+    with expander_predict_sales: # Forecast Sales
+        '### Prévisions des ventes'
         # Plot with confidence interval - start
 
         'Something here, a Plot with confidence interval'
@@ -317,19 +210,47 @@ with col_right: # Column right
 
         # Plot with confidence interval - end
 
+show_inv_eff = st.checkbox('Inv. efficient')
+'''
+- Inventory Efficient (Lines predict/Real)
+(Efficacité du réapprovisionnement ?)
+'''
+
+if show_inv_eff: # InvEff (Pred, Real)
+    '''
+    ### Inventory Efficient (Lines predict, Lines real)
+    (Efficacité du réapprovisionnement ?)
+    '''
+
+    # Just remove after
+    st.write(df.groupby(by='family').sum().sort_values('family_sales', ascending=False))
 
 
-# '''
-# ## Map of stores
-# '''
-# # Map
-# # -----------------------
-# if mapping:
+    # df.loc[df['family'] == 'GROCERY I'].loc[df['date'].dt.year == 2015]
+    @st.cache(suppress_st_warning=True, allow_output_mutation=True)
+    def inv_efficient_plotly(df):
+        # see after to compare predict/real
+        # fig = px.line(df, x="date", y="family_sales", color='predict')
+        # GROCERY I
 
-#     st.write(df['city'].unique().T)
+        # test between 2 family
+        df['date'] = pd.to_datetime(df['date'])
+        # df predict (diff with columns predict: True ?)
+        df_one_family = df.loc[df['family'] == 'GROCERY I']\
+                            .loc[df['date'].dt.year == 2015]
+        # df real
+        df_second_family = df.loc[df['family'] == 'BEVERAGES']\
+                                .loc[df['date'].dt.year == 2015]
+        df_compare = pd.concat([df_one_family, df_second_family])
 
-#     '''
-#     Screen Map : with Folium (later)
-#     '''
+        # later, color= to diff predict with real
+        fig_one = px.line(df_compare, x='date', y='family_sales', markers=True,
+                          title='Inventory Efficient of application', color='family')
 
-#     # st.map()
+        fig_one.update_layout(paper_bgcolor='#B2B1B9')
+        # fig_two = px.line(df_second_family, x='date', y='family_sales', markers=True)
+
+        return fig_one
+    fig_one = inv_efficient_plotly(df)
+
+    st.plotly_chart(fig_one)
