@@ -88,7 +88,6 @@ col1.metric("Sales Units", f"{ui_actual_month}", f"{iu_past_month}")
 # Need stock
 col2.metric("Inventory Units", "121.10", "0.46%")
 
-
 with st.sidebar:
     '''
     # Forecast for sales
@@ -110,11 +109,11 @@ with st.sidebar:
     ---
     '''
 
-    show_3 = st.checkbox('Show 3')
-    '''
-    - Inventory Trend
-    ---
-    '''
+    # show_3 = st.checkbox('Show 3')
+    # '''
+    # - Inventory Trend
+    # ---
+    # '''
 
     show_4 = st.checkbox('Show 4')
     '''
@@ -133,6 +132,49 @@ with st.sidebar:
     # '''
     # mapping = st.checkbox('Show Map')
 
+
+if show_inv_eff: # InvEff (Pred, Real)
+    '### Screen down : Inventory Efficient (Lines predict, Lines real)'
+
+    # def display_time_series_2():
+    #     # dataframe predicted
+    #     fig = px.line(df, x='date', y='family_sales', markers=True)
+    #     # dataframe real
+    #     fig = px.line(df, x='date', y='family_sales', markers=True)
+    #     return fig
+
+    # Just remove after
+    st.write(df.groupby(by='family').sum().sort_values('family_sales', ascending=False))
+
+
+    # df.loc[df['family'] == 'GROCERY I'].loc[df['date'].dt.year == 2015]
+    @st.cache(suppress_st_warning=True, allow_output_mutation=True)
+    def inv_efficient_plotly(df):
+        # see after to compare predict/real
+        # fig = px.line(df, x="date", y="family_sales", color='predict')
+        # GROCERY I
+
+        # test between 2 family
+        df['date'] = pd.to_datetime(df['date'])
+        # df predict (diff with columns predict: True ?)
+        df_one_family = df.loc[df['family'] == 'GROCERY I']\
+                            .loc[df['date'].dt.year == 2015]
+        # df real
+        df_second_family = df.loc[df['family'] == 'BEVERAGES']\
+                                .loc[df['date'].dt.year == 2015]
+        df_compare = pd.concat([df_one_family, df_second_family])
+
+        # later, color= to diff predict with real
+        fig_one = px.line(df_compare, x='date', y='family_sales', markers=True,
+                          title='Inventory Efficient of application', color='family')
+
+        fig_one.update_layout(paper_bgcolor='#B2B1B9')
+        # fig_two = px.line(df_second_family, x='date', y='family_sales', markers=True)
+
+        return fig_one
+    fig_one = inv_efficient_plotly(df)
+
+    st.plotly_chart(fig_one)
 
 col_left, col_right = st.columns(2)
 with col_left: # Columns left
@@ -163,28 +205,28 @@ with col_left: # Columns left
         st.dataframe(df_store[['alert', 'family_sales']])
 
 
-    if show_3: # InvTrend
-        '### Screen 3 left : Inventory Trend'
-        # Selectbox for year and family
-        sb_year_inv = st.selectbox('Year inv',
-                        range(min(df['date'].dt.year),
-                            max(df['date'].dt.year)))
-        sb_family_inv = st.selectbox('Family inv', df['family'].unique())
+    # if show_3: # InvTrend
+    #     '### Screen 3 left : Inventory Trend'
+    #     # Selectbox for year and family
+    #     sb_year_inv = st.selectbox('Year inv',
+    #                     range(min(df['date'].dt.year),
+    #                         max(df['date'].dt.year)))
+    #     sb_family_inv = st.selectbox('Family inv', df['family'].unique())
 
-        @st.cache(suppress_st_warning=True, allow_output_mutation=True)
-        def display_time_series(df, sb_family_inv, year):
-            # df = px.data.stocks() # replace with your own data source
+    #     @st.cache(suppress_st_warning=True, allow_output_mutation=True)
+    #     def display_time_series(df, sb_family_inv, year):
+    #         # df = px.data.stocks() # replace with your own data source
 
-            # x=date y=family_sales by year by family
-            df_family = df.loc[df['family'] == sb_family_inv]\
-                            .loc[df['date'].dt.year == year]
-            # Lines plots
-            fig = px.line(df_family, x='date', y='family_sales', markers=True)
-            fig.update_layout(paper_bgcolor='#B2B1B9')
-            return fig
+    #         # x=date y=family_sales by year by family
+    #         df_family = df.loc[df['family'] == sb_family_inv]\
+    #                         .loc[df['date'].dt.year == year]
+    #         # Lines plots
+    #         fig = px.line(df_family, x='date', y='family_sales', markers=True)
+    #         fig.update_layout(paper_bgcolor='#B2B1B9')
+    #         return fig
 
 
-        st.plotly_chart(display_time_series(df, sb_family_inv, sb_year_inv))
+    #     st.plotly_chart(display_time_series(df, sb_family_inv, sb_year_inv))
 
 
 
@@ -274,51 +316,6 @@ with col_right: # Column right
         # plot_forecast(forecast, train, test, confidence_int[:,0], confidence_int[:,1])
 
         # Plot with confidence interval - end
-
-
-
-if show_inv_eff: # InvEff (Pred, Real)
-    '### Screen down : Inventory Efficient (Lines predict, Lines real)'
-
-    # def display_time_series_2():
-    #     # dataframe predicted
-    #     fig = px.line(df, x='date', y='family_sales', markers=True)
-    #     # dataframe real
-    #     fig = px.line(df, x='date', y='family_sales', markers=True)
-    #     return fig
-
-    # Just remove after
-    st.write(df.groupby(by='family').sum().sort_values('family_sales', ascending=False))
-
-
-    # df.loc[df['family'] == 'GROCERY I'].loc[df['date'].dt.year == 2015]
-    @st.cache(suppress_st_warning=True, allow_output_mutation=True)
-    def inv_efficient_plotly(df):
-        # see after to compare predict/real
-        # fig = px.line(df, x="date", y="family_sales", color='predict')
-        # GROCERY I
-
-        # test between 2 family
-        df['date'] = pd.to_datetime(df['date'])
-        # df predict (diff with columns predict: True ?)
-        df_one_family = df.loc[df['family'] == 'GROCERY I']\
-                            .loc[df['date'].dt.year == 2015]
-        # df real
-        df_second_family = df.loc[df['family'] == 'BEVERAGES']\
-                                .loc[df['date'].dt.year == 2015]
-        df_compare = pd.concat([df_one_family, df_second_family])
-
-        # later, color= to diff predict with real
-        fig_one = px.line(df_compare, x='date', y='family_sales', markers=True,
-                          title='Inventory Efficient of application', color='family')
-
-        fig_one.update_layout(paper_bgcolor='#B2B1B9')
-        # fig_two = px.line(df_second_family, x='date', y='family_sales', markers=True)
-
-        return fig_one
-    fig_one = inv_efficient_plotly(df)
-
-    st.plotly_chart(fig_one)
 
 
 
