@@ -10,16 +10,16 @@ pandas
 scikit-learn
 
 # tests/linter
-black
-coverage
-flake8
-pytest
-yapf
+# black
+# coverage
+# flake8
+# pytest
+# yapf
 
 # API
 gcsfs
 google-cloud-storage
-mlflow
+# mlflow
 s3fs
 
 # utilities
@@ -27,3 +27,17 @@ six>=1.14
 joblib
 memoized-property
 termcolor
+
+# library added
+
+# API
+fastapi
+# uvicorn
+
+# app framework
+streamlit
+
+# plot
+matplotlib
+seaborn
+plotly
