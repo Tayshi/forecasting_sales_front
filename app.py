@@ -125,22 +125,13 @@ col1, col2 = st.columns(2)
 col1.write('## Gestion d\'inventaires')
 col2.write('## Gestion des ventes')
 
-with col1:
+
+with col2:
     date_unit = st.date_input('Chosir la période', datetime.date(2015, 8, 1))
 
     sb_month_unit = date_unit.month
     sb_year_unit = date_unit.year
 
-    # sb_month_unit = st.selectbox('Month Unit', range(min(df['date'].dt.month),
-    #                                                 max(df['date'].dt.month)))
-
-# with col2:
-    # sb_year_unit = st.selectbox('Year Unit', range(min(df['date'].dt.year),
-    #                                                 max(df['date'].dt.year)))
-
-
-
-with col2:
     su_actual_month, su_past_month = inventory_unit(sb_month_unit, sb_year_unit)
     su_past_month = -(100 - (su_actual_month * 100 / su_past_month))
 
@@ -186,7 +177,7 @@ with col_left:
         fig = px.bar(df_bread, x='nb_days_left', y=df_bread.index, labels={'nb_days_left':'Nombres de jours restants',
                                                                            'index': ''})
 
-        fig.update_layout(paper_bgcolor='#2C2E43', font_size=24)
+        fig.update_layout(paper_bgcolor='#2C2E43', font_size=24, plot_bgcolor='#2C2E43')
         return fig
 
     st.plotly_chart(barplot_bread(df_bread_barkery))
@@ -220,7 +211,7 @@ with col_left:
         # fig = px.bar(df, y="family", x="family_sales", color='item_nbr' ,title="Prod à restock")
         fig = px.bar(df, y="family", x="family_sales",title="Produits à restock")
 
-        fig.update_layout(paper_bgcolor='#2C2E43', font_size=24)
+        fig.update_layout(paper_bgcolor='#2C2E43', font_size=24, plot_bgcolor='#2C2E43')
         return fig
 
     # st.plotly_chart(stackbarplot(df))
@@ -252,34 +243,6 @@ with col_left:
 
 with col_right:
     '### Top 10 des ventes (Sur 1 famille)'
-    # # add date to choose
-    # sb_year_top_10 = st.selectbox('Year',
-    #                         range(min(df['date'].dt.year),
-    #                             max(df['date'].dt.year)))
-
-    # # Later to select meat, chicken, beef, etc.
-    # # st.multiselect(label="Sélectionner vos produits", options=df['item_nbr'].columns.tolist(), default=["alcohol","malic_acid"])
-
-    # def show_top_10(df, sb_year_top_10):
-    #     df_in_date = df[df['date'].dt.year == sb_year_top_10]
-    #     df_top_10 = df_in_date[['family', 'family_sales']].groupby(by='family')\
-    #                         .sum()\
-    #                         .sort_values('family_sales', ascending=False).head(10)
-    #     return df_top_10
-
-
-    # st.dataframe(show_top_10(df, sb_year_top_10))
-
-    # def barplot_top10(df):
-    #     # fig = px.bar(df, x='family_sales', y=df.index, color='item_nbr')
-    #     fig = px.bar(df, x='family_sales', y=df.index)
-
-    #     fig.update_layout(paper_bgcolor='#2C2E43')
-    #     return fig
-
-    # st.plotly_chart(barplot_top10(show_top_10(df, sb_year_top_10)))
-
-
 
     # predicted_sales_per_item['data'] # item_nbr, forecast_product
     df_pred_sales_per_item = pd.DataFrame(predicted_sales_per_item['data'],
@@ -289,17 +252,17 @@ with col_right:
 
     df_pred_sales_per_item['item_nbr'] = df_pred_sales_per_item['item_nbr'].astype(str)
 
-    def barplot_top10_2(df):
+    def barplot_top10(df):
         # fig = px.bar(df, x='family_sales', y=df.index, color='item_nbr')
         df = df.groupby(by='item_nbr').sum()\
                             .sort_values('item_nbr', ascending=False).head(10)
         fig = px.bar(df, x='forecast_product', y=df.index, labels={'forecast_product': 'Nombres des ventes',
                                                                    'item_nbr': ''})
 
-        fig.update_layout(paper_bgcolor='#2C2E43', font_size=24)
+        fig.update_layout(paper_bgcolor='#2C2E43', font_size=24, plot_bgcolor='#2C2E43')
         return fig
 
-    st.plotly_chart(barplot_top10_2(df_pred_sales_per_item))
+    st.plotly_chart(barplot_top10(df_pred_sales_per_item))
 
 
     '### Prévisions des ventes'
@@ -326,7 +289,7 @@ with col_right:
         plt.legend(loc='upper left', fontsize=8);
 
     # create df_store_1 for test function predict for BREAD/BAKERY
-    df_store_1 = pd.read_csv('raw_data/preprocessed_sales_grouped_1.csv')
+    df_store_1 = pd.read_csv('forecasting_sales_front/data/preprocessed_sales_grouped_1.csv')
     df_store_1 = df_store_1[df_store_1['family'] == 'BREAD/BAKERY']
     df_store_1['date'] = pd.to_datetime(df_store_1['date'])
 
