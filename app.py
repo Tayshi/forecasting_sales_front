@@ -93,8 +93,6 @@ df['date'] = pd.to_datetime(df['date'])
 
 '''
 # Prévisions des ventes
-
-## Gestion d'inventaires
 ---
 '''
 
@@ -123,6 +121,10 @@ def inventory_unit(sb_month_unit, sb_year_unit):
 
 
 col1, col2 = st.columns(2)
+
+col1.write('## Gestion d\'inventaires')
+col2.write('## Gestion des ventes')
+
 with col1:
     date_unit = st.date_input('Chosir la période', datetime.date(2015, 8, 1))
 
@@ -165,6 +167,29 @@ col_left, col_right = st.columns(2)
 with col_left:
     '### Produits nécessaires à restock (Sur 1 boutique)'
 
+    # value : number of days left (with stock actual )
+    bread_barkery_dict = {
+        'pain': 2,
+        'croissant': 10,
+        'muffin': 8,
+        'tarte aux pommes': 5,
+        'tarte aux chocolats': 6,
+        'Sablé aux chocolats': 7,
+        'Bretzel': 3
+        }
+
+
+    df_bread_barkery = pd.DataFrame.from_dict(bread_barkery_dict, orient='index', columns=['nb_days_left'])
+    # st.dataframe(df_bread_barkery)
+    def barplot_bread(df_bread):
+        fig = px.bar(df_bread, x='nb_days_left', y=df_bread.index, labels={'nb_days_left':'Nombres de jours restants'})
+
+        fig.update_layout(paper_bgcolor='#2C2E43', font_size=24)
+        return fig
+
+    st.plotly_chart(barplot_bread(df_bread_barkery))
+
+
     # color not functionnal
     # def _color_red_or_green(val):
     #     color = 'red' if val < 10 else 'green'
@@ -173,28 +198,30 @@ with col_left:
     # Select store - see after
     # option = st.selectbox('Select a line to filter', df['store_nbr'].unique())
     # df_store = df[df['store_nbr'] == option]
-    df_store = df
 
-    df_store = df_store[['family', 'family_sales']]\
-                        .groupby(by='family').sum()\
-                        .sort_values('family_sales', ascending=False)
-    df_store['alert'] = (df_store['family_sales'] <= 0)
+
+    # df_store = df
+
+    # df_store = df_store[['family', 'family_sales']]\
+    #                     .groupby(by='family').sum()\
+    #                     .sort_values('family_sales', ascending=False)
+    # df_store['alert'] = (df_store['family_sales'] <= 0)
 
     # add colors
     # df_store.style.apply(_color_red_or_green,
     #                      subset='family_sales', axis=1)
     # By store
-    st.dataframe(df_store[['alert', 'family_sales']])
+    # st.dataframe(df_store[['alert', 'family_sales']])
 
     # too weight
     def stackbarplot(df):
         # fig = px.bar(df, y="family", x="family_sales", color='item_nbr' ,title="Prod à restock")
         fig = px.bar(df, y="family", x="family_sales",title="Produits à restock")
 
-        fig.update_layout(paper_bgcolor='#2C2E43')
+        fig.update_layout(paper_bgcolor='#2C2E43', font_size=24)
         return fig
 
-    st.plotly_chart(stackbarplot(df))
+    # st.plotly_chart(stackbarplot(df))
 
 
     if st.button('Commander'):
@@ -266,7 +293,7 @@ with col_right:
                             .sort_values('item_nbr', ascending=False).head(10)
         fig = px.bar(df, x='forecast_product', y=df.index)
 
-        fig.update_layout(paper_bgcolor='#2C2E43')
+        fig.update_layout(paper_bgcolor='#2C2E43', font_size=24)
         return fig
 
     st.plotly_chart(barplot_top10_2(df_pred_sales_per_item))
