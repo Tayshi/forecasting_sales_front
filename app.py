@@ -185,8 +185,7 @@ with col_left:
     # st.dataframe(df_bread_barkery)
     def barplot_bread(df_bread):
         fig = px.bar(df_bread, x='nb_days_left', y=df_bread.index, color='alert', labels={'nb_days_left':'Nombres de jours restants',
-                                                                           'index': '',
-                                                                           'alert': 'Seuil d\'alerte'})
+                                                                           'index': ''})
 
         fig.update_layout(paper_bgcolor='#2C2E43',
                           font_size=24,
