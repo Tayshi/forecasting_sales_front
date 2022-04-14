@@ -11,6 +11,7 @@ import datetime
 
 import requests
 import json
+import os
 
 
 # Initial state of website
@@ -29,6 +30,7 @@ h1 {
 }
 """
 
+st.write(f'<style>{CSS}</style>', unsafe_allow_html=True)
 # -----------
 # Request API
 # -----------
@@ -67,40 +69,35 @@ sales_fare = get_predict()
 # -----------
 # Request API
 # -----------
-# sales_fare_dict = json.dumps(sales_fare)
-# sales_fare_dict = json.loads(sales_fare_dict)
 
 # top 10
 # sales_fare['predicted_sales-per_item']['data']
 
-st.write(type(sales_fare))
-
-st.write(type(sales_fare['confidence_int']))
-
-#  json.loads(x)
 sales_fare
-'AH'
-sales_fare['confidence_int'] #confidence_int
-'B'
-sales_fare['family_forecast'] # forecast
 
+predicted_sales_per_item = json.loads(sales_fare['predicted_sales-per_item'])
+# st.write(predicted_sales_per_item)
+confidence_int = json.loads(sales_fare['confidence_int']) # confidence_int
+# st.write(confidence_int)
+family_forecast = json.loads(sales_fare['family_forecast']) # forecast
+# st.write(family_forecast)
 
-# st.write(f'<style>{CSS}</style>', unsafe_allow_html=True)
 
 # Generate DataFrame
 @st.cache(suppress_st_warning=True, allow_output_mutation=True)
 def get_cached_data():
     # return pd.read_csv('raw_data/train_all_table.csv', nrows=10000).drop(columns='Unnamed: 0')
     # work with 1 store
-    return pd.read_csv('forecasting_sales_front/data/preprocessed_sales_grouped_21.csv')
+    # return pd.read_csv('forecasting_sales_front/data/preprocessed_sales_grouped_21.csv')
+    return pd.read_csv('forecasting_sales_front/data/preprocessed_sales_grouped_1.csv')
 
 df = get_cached_data()
 df['date'] = pd.to_datetime(df['date'])
 
 '''
-# Forecast for sales
+# Prévisions des ventes
 
-## Management inventory
+## Gestion d'inventaires
 ---
 '''
 
@@ -130,7 +127,7 @@ def inventory_unit(sb_month_unit, sb_year_unit):
 
 col1, col2 = st.columns(2)
 with col1:
-    date_unit = st.date_input('Chosir la période', datetime.date(2013, 1, 1))
+    date_unit = st.date_input('Chosir la période', datetime.date(2015, 8, 1))
 
     sb_month_unit = date_unit.month
     sb_year_unit = date_unit.year
@@ -150,9 +147,9 @@ with col2:
 
     # Sales Units (With + or -) %
     try:
-        st.metric("Sales Units", f"{round(su_actual_month)}", f"{round(su_past_month)}%")
+        st.metric("Unités de ventes", f"{round(su_actual_month)}", f"{round(su_past_month)}%")
     except:
-        st.metric("Sales Units", f"{su_actual_month}", f"{su_past_month}%")
+        st.metric("Unités de ventes", f"{su_actual_month}", f"{su_past_month}%")
     # st.metric("Sales Units", f"{round(su_actual_month)}", f"{round(su_past_month)}%")
 
     # # In Progress - need stock
@@ -160,28 +157,15 @@ with col2:
     # st.metric("Inventory Units", "121.10", "0.46%")
 
 
-# EXAMPLE
-# col1, col2 = st.beta_columns(2)
-
-# expdr1 = col1.beta_expander('Column left')
-# with expdr1:
-#     st.write('More info in column layout?')
-
-# expdr = col2.beta_expander('Column right')
-# with expdr:
-#     st.write('More info!')
-
-
-
 
 col_left, col_right = st.columns(2)
 
 expander_need_stock = col_left.expander(label='Produits nécessaires à restock')
+expander_avail_stock = col_left.expander(label='Stocks disponibles (Sur 1 famille)')
 expander_top_ten = col_right.expander(label='Top 10 des ventes (Sur 1 famille)')
-expander_avail_stock = col_right.expander(label='Stocks disponibles (Sur 1 famille)')
 expander_predict_sales = col_right.expander(label='Prévisions des ventes')
 
-with expander_need_stock: #  Columns left - Needed product
+with col_left:
     '### Produits nécessaires à restock (Sur 1 boutique)'
 
     # color not functionnal
@@ -205,6 +189,11 @@ with expander_need_stock: #  Columns left - Needed product
     # By store
     st.dataframe(df_store[['alert', 'family_sales']])
 
+    if st.button('Commander'):
+        st.write('Commande effectué')
+    else:
+        st.write('Commande non effectué')
+
 
     # too weight
     # def stackbarplot(df):
@@ -215,7 +204,23 @@ with expander_need_stock: #  Columns left - Needed product
     # st.plotly_chart(stackbarplot(df))
 
 
-with expander_top_ten: # Column right - top10
+    '### Stocks disponibles (Sur 1 famille)'
+
+    '''
+
+    'Here, a selecbox of family'
+
+    Graphe des stocks disponibles
+    Need item_nbr if check 1 family...
+    '''
+    # sb_family_stock = st.selectbox('Family', df['family'].unique())
+
+    # df_family = df[df['family'] == sb_family_stock]
+    # df_family = df[df['family'] == sb_family_stock]
+    # st.plotly_chart(px.bar(df_family,x='unit_sales' y='item_nbr'))
+
+
+with col_right:
     '### Top 10 des ventes (Sur 1 famille)'
     # add date to choose
     sb_year_top_10 = st.selectbox('Year',
@@ -236,53 +241,22 @@ with expander_top_ten: # Column right - top10
     st.dataframe(show_top_10(df, sb_year_top_10))
 
     def barplot_top10(df):
+        # fig = px.bar(df, x='family_sales', y=df.index, color='item_nbr')
         fig = px.bar(df, x='family_sales', y=df.index)
+
         fig.update_layout(paper_bgcolor='#B2B1B9')
         return fig
 
     st.plotly_chart(barplot_top10(show_top_10(df, sb_year_top_10)))
 
-    sales_fare['predicted_sales-per_item']
-
-    # pd.DataFrame.from_dict(sales_fare_dict['predicted_sales-per_item']['data'], orient='index',
-    #                        columns=['item_nbr', 'forecast_product'])
-    # pd.DataFrame(sales_fare_dict['predicted_sales-per_item']['data'])
-
-
-with expander_avail_stock: # AvailableStock
-    '### Stocks disponibles (Sur 1 famille)'
-
-    '''
-
-    'Here, a selecbox of family'
-
-    Add someting here
-    Need item_nbr if check 1 family...
-    '''
-    # sb_family_stock = st.selectbox('Family', df['family'].unique())
-
-    # df_family = df[df['family'] == sb_family_stock]
-    # df_family = df[df['family'] == sb_family_stock]
-    # st.plotly_chart(px.bar(df_family,x='unit_sales' y='item_nbr'))
-
-
-with expander_predict_sales: # Forecast Sales
     '### Prévisions des ventes'
     # Plot with confidence interval - start
 
-    'Something here, a Plot with confidence interval'
+    'Un graphe avec une intervalle de confiance'
 
     # -------------
     # No need maybe
     # -------------
-
-    # # Create a correct Training/Test split to predict the last 50 points
-    # train = df['linearized'][0:150]
-    # test = df['linearized'][150:]
-
-    # # Build Model
-    # arima = ARIMA(train, order=(0, 1, 1))
-    # arima = arima.fit()
 
     # # Forecast
     # forecast, std_err, confidence_int = arima.forecast(len(test), alpha=0.05)  # 95% confidence
@@ -304,12 +278,12 @@ with expander_predict_sales: # Forecast Sales
 
         # Plot
         plt.figure(figsize=(10,4), dpi=100)
-        plt.plot(train, label='training', color='black')
-        plt.plot(test, label='actual', color='black', ls='--')
+        plt.plot(train, label='prediction', color='black')
+        plt.plot(test, label='reel', color='black', ls='--')
         plt.plot(fc_series, label='forecast', color='orange')
         if is_confidence_int:
             plt.fill_between(lower_series.index, lower_series, upper_series, color='k', alpha=.15)
-        plt.title('Forecast vs Actuals')
+        plt.title('Prédictions vs Réel')
         plt.legend(loc='upper left', fontsize=8);
 
     # create df_store_1 for test function predict for BREAD/BAKERY
@@ -326,68 +300,17 @@ with expander_predict_sales: # Forecast Sales
     test_store_1 = df_store_1.loc[df_store_1['family'] == 'BREAD/BAKERY']\
                                 .loc[df_store_1['date'].dt.year == 2016] # 2016 ->
 
-
-    # sales_fare['confidence_int'][:,0],
-    # sales_fare['confidence_int'][:,1])
-
-
+    # confidence_int[:,0]
+    # confidence_int[:,1]
 
     # Plot with confidence interval
     # plot_forecast(forecast, train_store_1, test_store_1, confidence_int[:,0], confidence_int[:,1])
-    # plot_forecast(sales_fare['family_forecast'], train_store_1, test_store_1,
-    #               sales_fare['confidence_int'][:,0],
-    #               sales_fare['confidence_int'][:,1])
-
-    # Plot with confidence interval - end
-
+    plot_forecast(family_forecast,
+                  train_store_1, test_store_1,
+                  [row[0] for row in confidence_int],
+                  [row[1] for row in confidence_int])
 
 
-
-
-# show_inv_eff = st.checkbox('Inv. efficient')
-# '''
-# - Inventory Efficient (Lines predict/Real)
-# (Efficacité du réapprovisionnement ?)
-# '''
-
-# if show_inv_eff: # InvEff (Pred, Real)
-#     '''
-#     ### Inventory Efficient (Lines predict, Lines real)
-#     (Efficacité du réapprovisionnement ?)
-#     '''
-
-#     # Just remove after
-#     st.write(df.groupby(by='family').sum().sort_values('family_sales', ascending=False))
-
-
-#     # df.loc[df['family'] == 'GROCERY I'].loc[df['date'].dt.year == 2015]
-#     @st.cache(suppress_st_warning=True, allow_output_mutation=True)
-#     def inv_efficient_plotly(df):
-#         # see after to compare predict/real
-#         # fig = px.line(df, x="date", y="family_sales", color='predict')
-#         # GROCERY I
-
-#         # test between 2 family
-#         df['date'] = pd.to_datetime(df['date'])
-#         # df predict (diff with columns predict: True ?)
-#         df_one_family = df.loc[df['family'] == 'GROCERY I']\
-#                             .loc[df['date'].dt.year == 2015]
-#         # df real
-#         df_second_family = df.loc[df['family'] == 'BEVERAGES']\
-#                                 .loc[df['date'].dt.year == 2015]
-#         df_compare = pd.concat([df_one_family, df_second_family])
-
-#         # later, color= to diff predict with real
-#         fig_one = px.line(df_compare, x='date', y='family_sales', markers=True,
-#                           title='Inventory Efficient of application', color='family')
-
-#         fig_one.update_layout(paper_bgcolor='#B2B1B9')
-#         # fig_two = px.line(df_second_family, x='date', y='family_sales', markers=True)
-
-#         return fig_one
-#     fig_one = inv_efficient_plotly(df)
-
-#     st.plotly_chart(fig_one)
 
 expander_df = st.expander(label='DataFrame')
 with expander_df:
