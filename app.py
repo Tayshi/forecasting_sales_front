@@ -159,25 +159,40 @@ with col_left:
     '### Inventaire restant en jours'
 
     # value : number of days left (with stock actual )
+    # bread_barkery_dict = {
+    #     'Pain': 2,
+    #     'Pain de mie': 8,
+    #     'Croissant': 10,
+    #     'Muffin': 8,
+    #     'Tarte aux pommes': 5,
+    #     'Tarte aux chocolats': 6,
+    #     'Sablé aux chocolats': 7,
+    #     'Bretzel': 3
+    #     }
+
     bread_barkery_dict = {
-        'Pain': 2,
-        'Pain de mie': 8,
-        'Croissant': 10,
-        'Muffin': 8,
-        'Tarte aux pommes': 5,
-        'Tarte aux chocolats': 6,
-        'Sablé aux chocolats': 7,
-        'Bretzel': 3
+        'Pain de mie': [8, 'Bon'],
+        'Pain': [2, 'Alerte'],
+        'Croissant': [10, 'Bon'],
+        'Muffin': [8, 'Bon'],
+        'Tarte aux pommes': [5, 'Alerte'],
+        'Tarte aux chocolats': [6, 'Alerte'],
+        'Sablé aux chocolats': [7, 'Bon'],
+        'Bretzel': [3, 'Alerte']
         }
 
-
-    df_bread_barkery = pd.DataFrame.from_dict(bread_barkery_dict, orient='index', columns=['nb_days_left'])
+    df_bread_barkery = pd.DataFrame.from_dict(bread_barkery_dict, orient='index', columns=['nb_days_left', 'alert'])
     # st.dataframe(df_bread_barkery)
     def barplot_bread(df_bread):
-        fig = px.bar(df_bread, x='nb_days_left', y=df_bread.index, labels={'nb_days_left':'Nombres de jours restants',
-                                                                           'index': ''})
+        fig = px.bar(df_bread, x='nb_days_left', y=df_bread.index, color='alert', labels={'nb_days_left':'Nombres de jours restants',
+                                                                           'index': '',
+                                                                           'alert': 'Seuil d\'alerte'})
 
-        fig.update_layout(paper_bgcolor='#2C2E43', font_size=24, plot_bgcolor='#2C2E43')
+        fig.update_layout(paper_bgcolor='#2C2E43',
+                          font_size=24,
+                          plot_bgcolor='#2C2E43',
+                        #   legend_bgcolor='#2C2E43',
+                          showlegend=False)
         return fig
 
     st.plotly_chart(barplot_bread(df_bread_barkery))
@@ -319,7 +334,7 @@ with col_right:
     # Plot with confidence interval
     # plot_forecast(forecast, train_store_1, test_store_1, confidence_int[:,0], confidence_int[:,1])
     var_plot_forecast = plot_forecast(family_forecast,
-                    train_store_1['family_sales'],
+                    train_store_1['family_sales'], # x0_BREAD_BAKERY
                     test_store_1['family_sales'],
                     [row[0] for row in confidence_int],
                     [row[1] for row in confidence_int])
