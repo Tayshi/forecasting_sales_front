@@ -165,15 +165,16 @@ col_left, col_right = st.columns(2)
 # expander_predict_sales = col_right.expander(label='Prévisions des ventes')
 
 with col_left:
-    '### Produits nécessaires à restock (Sur 1 boutique)'
+    '### Inventaire restant en jours'
 
     # value : number of days left (with stock actual )
     bread_barkery_dict = {
-        'pain': 2,
-        'croissant': 10,
-        'muffin': 8,
-        'tarte aux pommes': 5,
-        'tarte aux chocolats': 6,
+        'Pain': 2,
+        'Pain de mie': 8,
+        'Croissant': 10,
+        'Muffin': 8,
+        'Tarte aux pommes': 5,
+        'Tarte aux chocolats': 6,
         'Sablé aux chocolats': 7,
         'Bretzel': 3
         }
@@ -182,7 +183,8 @@ with col_left:
     df_bread_barkery = pd.DataFrame.from_dict(bread_barkery_dict, orient='index', columns=['nb_days_left'])
     # st.dataframe(df_bread_barkery)
     def barplot_bread(df_bread):
-        fig = px.bar(df_bread, x='nb_days_left', y=df_bread.index, labels={'nb_days_left':'Nombres de jours restants'})
+        fig = px.bar(df_bread, x='nb_days_left', y=df_bread.index, labels={'nb_days_left':'Nombres de jours restants',
+                                                                           'index': ''})
 
         fig.update_layout(paper_bgcolor='#2C2E43', font_size=24)
         return fig
@@ -291,7 +293,8 @@ with col_right:
         # fig = px.bar(df, x='family_sales', y=df.index, color='item_nbr')
         df = df.groupby(by='item_nbr').sum()\
                             .sort_values('item_nbr', ascending=False).head(10)
-        fig = px.bar(df, x='forecast_product', y=df.index)
+        fig = px.bar(df, x='forecast_product', y=df.index, labels={'forecast_product': 'Nombres des ventes',
+                                                                   'item_nbr': ''})
 
         fig.update_layout(paper_bgcolor='#2C2E43', font_size=24)
         return fig
