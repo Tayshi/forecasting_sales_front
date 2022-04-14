@@ -153,8 +153,8 @@ with col_left:
     '### Inventaire restant en jours'
 
     # For forecast
-    df_gr_2 = pd.read_csv('raw_data/preprocessed_sales_grouped_2.csv')
-    df_proportion = pd.read_csv('raw_data/proportion_bread.csv', usecols=['item_sales'])
+    df_gr_2 = pd.read_csv('forecasting_sales_front/data/preprocessed_sales_grouped_2.csv')
+    df_proportion = pd.read_csv('forecasting_sales_front/data/proportion_bread.csv', usecols=['item_sales'])
 
 
     # predicted_sales_per_item['data']
