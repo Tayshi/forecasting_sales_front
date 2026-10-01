@@ -60,7 +60,7 @@ dict_predict_store = {
 # Call API using `requests`
 # Retrieve the prediction from the **JSON** returned by API...
 # display the prediction
-@st.cache
+@st.cache_data
 def get_predict():
 
     # my_url = 'https://docker-tfm-ipbs6r3hdq-ew.a.run.app/predict'
